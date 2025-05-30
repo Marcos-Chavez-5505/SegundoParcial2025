@@ -134,8 +134,55 @@ class EmpresaCable{
         return $promedioImporte;
     }
 
-    public function pagarContrato(){
+    public function pagarContrato($codigoContrato){
         
+        $contratos = $this->getContratos();
+
+        $contratoEncontrado = null;
+
+        $i = 0;
+        $flag = true;
+        
+        while($i < count($contratos) && $flag){
+            $contrato = $contratos[$i];
+
+            if($contrato->getCodigo() == $codigoContrato){
+                $contratoEncontrado = $contrato;
+                $flag = false;
+            }
+
+            $i++;
+        }
+
+        if($contratoEncontrado !== null){
+
+        $estado = $contratoEncontrado->getEstado();
+        $importeFinal = $contratoEncontrado->calcularImporte();
+
+        $diasVencido = $contratoEncontrado->diasContratoVencido();
+
+        if ($estado == "al día"){
+            $contratoEncontrado->setRenueva(true);
+
+        }
+        elseif ($estado == "moroso"){
+            $multa = $importeBase * 0.10 * $diasMora;
+            $importeFinal += $multa;
+            $contratoEncontrado->setEstado('al día');
+            $contratoEncontrado->renueva(true);
+
+        }
+        elseif ($estado == "suspendido") {
+            $multa = $importeBase * 0.10 * $diasMora;
+            $importeFinal += $multa;
+
+        }
+        elseif ($estado == "finalizado") {
+            return "El contrato está finalizado y no puede pagarse.";
+        }
+        }
+    
+        return $importeFinal;
     }
 
     // Metodo toString()
